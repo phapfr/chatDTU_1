@@ -10,6 +10,7 @@ import axios from "axios";
 import api from "../../api";
 import Typewriter from 'typewriter-effect'
 import { ReactTyped } from 'react-typed'
+import { useLocation } from "react-router-dom"
 //import ChatDetailList from "../../components/ChatDetail";
 
 function QuestionAnswer({ request }) {
@@ -39,10 +40,19 @@ function QuestionAnswer({ request }) {
 const Home = () => {
   const [chatDetailList, SetChatDetailList] = useState([]);
   const [valueAnswer, setValueAnswer] = useState("");
+  const location = useLocation();
+  console.log(location.state);
 
   function createAnswer(questionAnswerData) {
     SetChatDetailList((prevState) => [...prevState, questionAnswerData]);
     //setValueAnswer("");
+  }
+
+  function UpdateAnswer(questionAnswerData) {
+    SetChatDetailList((prevState) => {
+      prevState[prevState.length-1].answer = questionAnswerData.answer
+      return [...prevState]
+    })
   }
 
   function handlePostMsg(event) {
@@ -56,19 +66,25 @@ const Home = () => {
     }
 
     setValueAnswer("")
+    const data = {
+      question: value,
+      answer: "..."
+      //answer: "hellosd sdfsdf sdafsd fsdafsdf dsafsad dsfasdaf sdafsd"
+  }
+    createAnswer(data);
 
     api
-      //.post("/conversation?query=" + value)
-      .post("/posts")
+      .post("/query?query=" + value)
+      //.post("/posts")
       .then((res) => {
         console.log({res});
-        const data = {
-            question: value,
-            //answer: res.data.response
-            answer: "hellosd sdfsdf sdafsd fsdafsdf dsafsad dsfasdaf sdafsd"
+        const newData = {
+          question: value,
+          answer: res.data.response
+          //answer: "hellosd sdfsdf sdafsd fsdafsdf dsafsad dsfasdaf sdafsd"
         }
-        console.log(data)
-        createAnswer(data);
+        console.log(newData)
+        UpdateAnswer(newData)
       })
       .catch(() => {});
   }

@@ -1,85 +1,144 @@
-import React from "react";
+import React, { Fragment, useState } from "react";
+import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
 import "./index.scss";
-import { Button, Checkbox, Form, Input } from "antd";
+import dtu_logo from "../../assets/img/dtu_logo.png";
+import { httpClient } from "../../api";
+import { Button } from "antd";
 
-const Login = () => {
-    const onFinish = (values) => {
-        console.log("Success:", values);
+function SetStorage(data) {
+  localStorage.setItem("UserId", data.id);
+  localStorage.setItem("UserName", data.userName);
+  localStorage.setItem("RoleId", data.roleId);
+
+  let chats = data.chats.map((value) => {
+    return {
+      id: value.id,
+      name: value.name,
     };
-    const onFinishFailed = (errorInfo) => {
-        console.log("Failed:", errorInfo);
+  });
+
+  localStorage.setItem("chats", JSON.stringify(chats));
+}
+
+function Login() {
+  const [name, setName] = useState("");
+  const [phoneNo, setPhoneNo] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  let navigate = useNavigate();
+  const handleNameChange = (value) => {
+    setName(value);
+  };
+  const handlePhoneNOChange = (value) => {
+    setPhoneNo(value);
+  };
+  const handleLogin = () => {
+    const data = {
+      UserName: name,
+      PasswordHash: phoneNo,
     };
 
-    return (
-        <div className="l-flex">
-            <Form
-                name="basic"
-                labelCol={{
-                    span: 8,
-                }}
-                wrapperCol={{
-                    span: 16,
-                }}
-                style={{
-                    maxWidth: 1000,
-                }}
-                initialValues={{
-                    remember: true,
-                }}
-                onFinish={onFinish}
-                onFinishFailed={onFinishFailed}
-                autoComplete="off"
+    const url = "https://localhost:44335/api/Account/Login";
+    httpClient
+      .post("Account/Login", data)
+      .then((result) => {
+        setIsLoading(true);
+        let finalResult = result.data.value;
+        //localStorage.setItem('chats', JSON.stringify(finalResult.data))
+        SetStorage(finalResult.data);
+        alert(finalResult.message);
+        if (finalResult.data != null) {
+          navigate("/");
+        }
+      })
+      .catch((error) => {
+        alert(error);
+      })
+      .finally(() => {
+          setIsLoading(false);
+      });
+    // axios
+    //     .post(url, data)
+    //     .then((result) => {
+    //         let finalResult = result.data.value;
+    //         //localStorage.setItem('chats', JSON.stringify(finalResult.data))
+    //         SetStorage(finalResult.data)
+    //         alert(finalResult.message);
+    //         if (finalResult.data != null){
+    //             navigate("/")
+    //         }
+    //     })
+    //     .catch((error) => {
+    //         alert(error);
+    //     });
+  };
+  return (
+    <Fragment>
+      <div className="sign-in-up">
+        <div className="sign-in-up-box">
+          <div className="logo">
+            <img src={dtu_logo} alt="dtu_chatbot" />
+          </div>
+          <div className="logo_responsives">
+            <img src="img/mobile_dtu_logo.png" alt="dtu_chatbot" />
+          </div>
+
+          <div className="title">ChatDTU Tư Vấn Tuyển Sinh Đại Học Duy Tân</div>
+          <div className="group">
+            <p>Name</p>
+            <div className="box">
+              <i className="fa-solid fa-user-plus"></i>
+              <input
+                type="text"
+                id="txtName"
+                placeholder="Enter Name"
+                onChange={(e) => handleNameChange(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="group">
+            <p>Password</p>
+            <div className="box">
+              <i class="fa-solid fa-phone"></i>
+              <input
+                type="password"
+                id="txtPhoneNo"
+                placeholder="Enter Password"
+                onChange={(e) => handlePhoneNOChange(e.target.value)}
+              />
+            </div>
+          </div>
+          <a href="#!" class="forgot-passowrd">
+            Quên Mật Khẩu?
+          </a>
+
+          <div class="sign-in-btn-group">
+            <Button
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              loading={isLoading}
+              disabled={isLoading}
+              className="sign-btn"
+              onClick={() => handleLogin()}
             >
-                <Form.Item
-                    label="Username"
-                    name="username"
-                    rules={[
-                        {
-                            required: true,
-                            message: "Please input your username!",
-                        },
-                    ]}
-                >
-                    <Input size="large" style={{ width: '100%' }}/>
-                </Form.Item>
+              Login
+            </Button>
+            <a href="#!" class="sign-btn guest-sign-in-btn">
+              Đăng Nhập Với Tư Cách Khách
+            </a>
+          </div>
 
-                <Form.Item
-                    label="Password"
-                    name="password"
-                    rules={[
-                        {
-                            required: true,
-                            message: "Please input your password!",
-                        },
-                    ]}
-                >
-                    <Input.Password size="large" style={{ width: '100%' }}/>
-                </Form.Item>
-
-                <Form.Item
-                    name="remember"
-                    valuePropName="checked"
-                    wrapperCol={{
-                        offset: 8,
-                        span: 16,
-                    }}
-                >
-                    <Checkbox>Remember me</Checkbox>
-                </Form.Item>
-
-                <Form.Item
-                    wrapperCol={{
-                        offset: 8,
-                        span: 16,
-                    }}
-                >
-                    <Button type="primary" htmlType="submit" size="large" style={{ width: '100%' }}>
-                        Submit
-                    </Button>
-                </Form.Item>
-            </Form>
+          <span class="desc">Bạn chưa có tài khoản? </span>
+          <Link to="/Register" className="sign-link">
+            Đăng Ký
+          </Link>
         </div>
-    );
-};
+      </div>
+    </Fragment>
+  );
+}
 
 export default Login;
